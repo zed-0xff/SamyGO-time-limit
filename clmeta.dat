@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<contentlibrary>
+	<contentpack id="time_limit">
+		<category>Game</category>
+		<title language_id="English">time_limit</title>
+		<startpoint language_id="English">./loader.so</startpoint>
+		<thumbnailpath>./time_limit.png</thumbnailpath>
+		<totalsize>1</totalsize>
+	</contentpack>
+</contentlibrary>
