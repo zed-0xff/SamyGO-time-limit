@@ -22,8 +22,11 @@ extern int _ZN14SsKeyInputBase7SendKeyEi(unsigned int, int);
 #define TTF_FONT   "/mtd_appdata/Font/shadow.ttf"
 #define TTF_SIZE   24
 
-#define DAILY_ALLOWED_TIME      (3600*7/2) // 3.5 hours (in seconds)
-#define COUNTER_WRITE_PERIOD    (60*2)     // 2 minutes (in seconds)
+// all times and periods are in seconds
+#define DAILY_ALLOWED_TIME      (3600/2)
+#define WEEKEND_ALLOWED_TIME    (3600*2)
+
+#define COUNTER_WRITE_PERIOD    (60*2)
 
 #define COUNTER_FILE      "/mtd_rwarea/time_limit.dat"
 
@@ -31,10 +34,19 @@ extern int _ZN14SsKeyInputBase7SendKeyEi(unsigned int, int);
 
 //#define INCLUDE_SECONDS // include seconds in on-screen counter
 
-int read_counter(int current_day_idx){
+int read_counter(int current_day_idx, time_t current_time){
     FILE *f = fopen(COUNTER_FILE, "rb");
+    struct tm* ltm = localtime(&current_time);
+    int rmax;
+
+    if( ltm->tm_wday == 0 || ltm->tm_wday == 6 ){
+        rmax = WEEKEND_ALLOWED_TIME;
+    } else {
+        rmax = DAILY_ALLOWED_TIME;
+    }
+
     if( !f ) {
-        return DAILY_ALLOWED_TIME;
+        return rmax;
     }
 
     int saved_day_idx = 0;
@@ -42,7 +54,7 @@ int read_counter(int current_day_idx){
     
     if( saved_day_idx != current_day_idx ){
         fclose(f);
-        return DAILY_ALLOWED_TIME;
+        return rmax;
     }
 
     int remaining_time = 0;
@@ -80,7 +92,7 @@ void time_limit_thread(void *tt){
     TTF_Font* ttf_font;
     int current_time = (int)tt;
     int current_day_idx = current_time/86400; // 86400 seconds in one day
-    int remaining_time = read_counter(current_day_idx);
+    int remaining_time = read_counter(current_day_idx, current_time);
     FILE* log = fopen( "/mtd_ram/time_limit.log", "a+" );
 
     SDL_Delay(1000);
